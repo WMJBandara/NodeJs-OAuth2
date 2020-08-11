@@ -2,6 +2,8 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
 const mongoose = require('mongoose');
 const User = require('../models/User');
+const { use } = require('passport');
+const { propfind } = require('../routes');
 
 
 module.exports = function (passport) {
@@ -49,6 +51,7 @@ module.exports = function (passport) {
         callbackURL: "/auth/google/callback"
     },
         async (accessToken, refreshToken, profile, done) => {
+            
             const newUser = {
                 Id : profile.id,
                 displayName : profile.displayName,
@@ -70,16 +73,15 @@ module.exports = function (passport) {
             } catch (error) {
                 console.error(error);
             }
-            //done(nul, profile);
         }
     ));
 
-    passport.serializeUser((user, done) => {
-        done(null, user.id);
+    passport.serializeUser((user, done) => {   
+        done(null, { _id: user._id });
     });
 
-    passport.deserializeUser((id, done) => {
-        User.findById(id, (err, user) => done(err, user));
+    passport.deserializeUser((_id, done) => {
+        User.findById(_id, (err, user) => done(err, user));
     });
 
 };
